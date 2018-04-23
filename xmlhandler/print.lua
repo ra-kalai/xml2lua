@@ -14,7 +14,9 @@ local _G, print, string, table, pairs, type, tostring, tonumber, error, io
       = 
       _G, print, string, table, pairs, type, tostring, tonumber, error, io
 
-module "xmlhandler.print"
+if _VERSION:match("5%.1") then
+    module "xmlhandler.print"
+end
 
 function starttag(self, t, a, s, e) 
     io.write("Start    : "..t.."\n") 
@@ -67,3 +69,14 @@ function decl(self, t, a, s, e)
         end 
     end
 end
+
+return {
+    starttag=starttag,
+    endtag=endtag,
+    text=text,
+    cdata=cdata,
+    comment=comment,
+    dtd=dtd,
+    pi=pi,
+    decl=decl,
+}

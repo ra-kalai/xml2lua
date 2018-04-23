@@ -96,7 +96,9 @@ local _G, print, string, table, pairs, type, tostring, tonumber, error, io, setm
       = 
       _G, print, string, table, pairs, type, tostring, tonumber, error, io, setmetatable, getmetatable
 
-module "xml2lua"
+if _VERSION:match("5%.1") then
+    module "xml2lua"
+end
 
 ---Converts the decimal code of a character to its corresponding char
 --if it's a graphical char, otherwise, returns the HTML ISO code
@@ -172,7 +174,7 @@ end
 
 
 ---Class to parse XML
-XmlParser = {
+local XmlParser = {
     --  Available options are -
     --  
     --      * stripWS   
@@ -244,6 +246,8 @@ XmlParser = {
     }    
 }
 
+XmlParser.__index = XmlParser
+
 ---Instantiates a XmlParser object to parse a XML string
 --@param handler Handler module to be used to convert the XML string
 --to another formats. See the available handlers at the handler directory.
@@ -270,8 +274,7 @@ function parser(handler)
         }
     }
 
-	setmetatable(obj, XmlParser)
-	XmlParser.__index = XmlParser
+    setmetatable(obj, XmlParser)
 
     return obj
 end
@@ -539,3 +542,16 @@ function loadFile(xmlFilePath)
     
     error(e)
 end
+
+local m = {
+    loadFile = loadFile,
+    parser = parser,
+    printable = printable
+}
+
+-- declare a global variable xml2lua, to keep code compatibility
+-- if _ENV ~= nil then
+-- 	xml2lua = m
+-- end
+
+return m

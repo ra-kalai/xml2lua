@@ -10,7 +10,7 @@
 -- Initial Import
 --
 
-require("xml2lua")
+local xml2lua = require("xml2lua")
 local treeHandler = require("xmlhandler/tree")
 local domHandler = require("xmlhandler/dom")
 local printHandler = require("xmlhandler/print")
@@ -18,7 +18,7 @@ local printHandler = require("xmlhandler/print")
 -- Defaults
 _print = nil
 _simpletree = nil
-_dom = nil 
+_dom = nil
 _file = nil
 _debug = nil
 _ws = nil

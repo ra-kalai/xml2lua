@@ -49,11 +49,15 @@ local _G, print, string, table, pairs, type, tostring, tonumber, error, io
       = 
       _G, print, string, table, pairs, type, tostring, tonumber, error, io
 
-module "xmlhandler.tree"
 
-root = {}     
-stack = {root; n=1}
-options = {noreduce = {}}
+if _VERSION:match("5%.1") then
+   module "xmlhandler.tree"
+end
+
+
+local root = {}
+local stack = {root; n=1}
+local options = {noreduce = {}}
 
 --Gets the first key of a table
 --@param tb table to get its first key
@@ -79,7 +83,7 @@ function reduce(self, node, key, parent)
             self:reduce(v,k,node)
         end
     end
-    if #node == 1 and not self.options.noreduce[key] and 
+    if #node == 1 and not options.noreduce[key] and
         node._attr == nil then
         parent[key] = node[1]
     else
@@ -96,27 +100,27 @@ function starttag(self, t, a)
         node._attr=a
     end
     
-    local current = self.stack[#self.stack]
+    local current = stack[#stack]
     if current[t] then
         table.insert(current[t],node)
     else
         current[t] = {node;n=1}
     end
-    table.insert(self.stack,node)
+    table.insert(stack,node)
 end
 
 ---Parses an end tag
 --@param t Tag name
 function endtag(self, t, s)
     --Tabela que representa a tag atualmente sendo processada
-    local current = self.stack[#self.stack]
+    local current = stack[#stack]
     --Tabela que representa a tag na qual a tag
     --atual está contida.
-    local prev = self.stack[#self.stack-1]
+    local prev = stack[#stack-1]
     if not prev[t] then
         error("XML Error - Unmatched Tag ["..s..":"..t.."]\n")
     end
-    if prev == self.root then
+    if prev == root then
         -- Once parsing complete recursively reduce tree
         self:reduce(prev,nil,nil)
     end
@@ -136,12 +140,22 @@ function endtag(self, t, s)
         prev[t] = ""
     end
         
-    table.remove(self.stack)
+    table.remove(stack)
 end
 
 function text(self, t)
-    local current = self.stack[#self.stack]
+    local current = stack[#stack]
     table.insert(current,t)
 end
 
 cdata = text
+
+return {
+    root=root,
+    options=options,
+    reduce=reduce,
+    starttag=starttag,
+    endtag=endtag,
+    cdata=text,
+    text=text,
+}

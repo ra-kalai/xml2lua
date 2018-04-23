@@ -29,73 +29,88 @@ local _G, print, string, table, pairs, type, tostring, tonumber, error, io
       = 
       _G, print, string, table, pairs, type, tostring, tonumber, error, io
 
-module "xmlhandler.dom"
+if _VERSION:match("5%.1") then
+    module "xmlhandler.dom"
+end
 
-options = {commentNode=1, piNode=1, dtdNode=1, declNode=1}
-root = { _children = {n=0}, _type = "ROOT" }
-current = root
+local options = {commentNode=1, piNode=1, dtdNode=1, declNode=1}
+local root = { _children = {n=0}, _type = "ROOT" }
+local current = root
 
 function starttag(self, t, a)
         local node = { _type = 'ELEMENT', 
                         _name = t, 
                         _attr = a, 
-                        _parent = self.current, 
+                        _parent = current,
                         _children = {n=0} }
-        table.insert(self.current._children,node)
-        self.current = node
+        table.insert(current._children,node)
+        current = node
 end
 
 function endtag(self, t, s)
-        if t ~= self.current._name then
+        if t ~= current._name then
         error("XML Error - Unmatched Tag ["..s..":"..t.."]\n")
         end
-        self.current = self.current._parent
+        current = current._parent
 end
 
 function text(self, t)
         local node = { _type = "TEXT", 
-                        _parent = self.current, 
+                        _parent = current,
                         _text = t }
-        table.insert(self.current._children,node)
+        table.insert(current._children,node)
 end
 
 function comment(self, t)
-        if self.options.commentNode then
+        if options.commentNode then
         local node = { _type = "COMMENT", 
-                        _parent = self.current, 
+                        _parent = current,
                         _text = t }
-        table.insert(self.current._children,node)
+        table.insert(current._children,node)
         end
 end
 
 function pi(self, t, a)
-        if self.options.piNode then
+        if options.piNode then
         local node = { _type = "PI", 
                         _name = t,
                         _attr = a, 
-                        _parent = self.current } 
-        table.insert(self.current._children,node)
+                        _parent = current }
+        table.insert(current._children,node)
         end
 end
 
 function decl(self, t, a)
-        if self.options.declNode then
+        if options.declNode then
         local node = { _type = "DECL", 
                         _name = t,
                         _attr = a, 
-                        _parent = self.current }
-        table.insert(self.current._children,node)
+                        _parent = current }
+        table.insert(current._children,node)
         end
 end
 
 function dtd(self, t, a)
-        if self.options.dtdNode then
+        if options.dtdNode then
         local node = { _type = "DTD", 
                         _name = t,
                         _attr = a, 
-                        _parent = self.current }
-        table.insert(self.current._children,node)
+                        _parent = current }
+        table.insert(current._children,node)
         end
 end
 
 cdata = text
+
+return {
+    root=root,
+    options=options,
+    starttag=starttag,
+    endtag=endtag,
+    text=text,
+    comment=comment,
+    pi=pi,
+    decl=decl,
+    dtd=dtd,
+    cdata=text,
+}
